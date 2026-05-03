@@ -15,7 +15,7 @@ namespace bmp280 {
     class Bmp280 {
         private:
             i2c::I2cDevice dev;
-            uint16_t t1;
+            int16_t t1;
             int16_t t2;
             int16_t t3;
             uint16_t p1;
@@ -94,10 +94,10 @@ namespace bmp280 {
                 if (dev.read_n(0xD0, 1, &id).is_err() || id != 0x58 || self.dev.read_n(0x88, 24, buf).is_err()) {
                     return Result<Bmp280, BmpError>::Err(BmpError());
                 }
-                
+
                 self.dev.write_u8(0xf4, 0x57);  // temp x2, pressure x16, normal mode
                 self.dev.write_u8(0xf5, 0x40);  // standby 125ms, filter off
-               
+
                 self.t1 = le_u16(buf[0],  buf[1]);
                 self.t2 = le_i16(buf[2],  buf[3]);
                 self.t3 = le_i16(buf[4],  buf[5]);
@@ -111,14 +111,14 @@ namespace bmp280 {
                 self.p7 = le_i16(buf[18], buf[19]);
                 self.p8 = le_i16(buf[20], buf[21]);
                 self.p9 = le_i16(buf[22], buf[23]);
-         
+
                 return Result<Bmp280, BmpError>::Ok(self);
             }
 
             auto measure() -> Result<Measurement, BmpError> {
                 uint8_t buf[6] = {0};
                 if (this->dev.read_n(0xf7, 6, buf).is_err()) {
-                    return Result<Measurement, BmpError>::Err(BmpError()); 
+                    return Result<Measurement, BmpError>::Err(BmpError());
                 }
 
                 int32_t adc_P =

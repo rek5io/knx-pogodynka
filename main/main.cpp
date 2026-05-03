@@ -87,6 +87,33 @@ auto oled_task(i2c::I2cBus bus) -> void {
     oled.clear();
     oled.update();
     while (1) {
+        oled.clear();
+        {
+            auto guard = mea.lock();
+            
+            oled.println(std::to_string(((guard.get_ref().bmp.temperature * 10) + (guard.get_ref().dht.temperature * 10)) / 20).c_str(),0);
+            oled.println(std::to_string(guard.get_ref().dht.humidity).c_str(),0);
+            oled.println(std::to_string(guard.get_ref().bmp.pressure).c_str(),0);
+        }
+        
+        oled.update();
+        std::this_thread::sleep_for(std::chrono::milliseconds(time));
+        oled.clear();
+        oled.println("01234567890", true);
+        oled.println("qwertyuiop", false);
+        oled.println("asdfghjkl", true);
+        oled.println("zxcvbnm", false);
+        oled.println("Hello, world!", true);
+        oled.update();
+        std::this_thread::sleep_for(std::chrono::milliseconds(time));
+        oled.clear();
+        oled.draw_symbol(5, 5,  oled::font8x8_basic[38], 8, 8, true);
+        oled.draw_symbol(13, 5, oled::font8x8_basic[39], 8, 8, true);
+        oled.draw_symbol(21, 5, oled::font8x8_basic[40], 8, 8, true);
+        oled.draw_symbol(29, 5, oled::font8x8_basic[41], 8, 8, true);
+        oled.update();
+        std::this_thread::sleep_for(std::chrono::milliseconds(time));
+        /*
         //DEMO CODE
         oled.clear();
         oled.fill_chess(1);
@@ -105,10 +132,10 @@ auto oled_task(i2c::I2cBus bus) -> void {
         oled.update();
         std::this_thread::sleep_for(std::chrono::milliseconds(time));
         oled.clear();
-        oled.println("1110001010", true);
-        oled.println("1010101010", false);
+        oled.println("01234567890", true);
+        oled.println("01234567890", false);
         oled.update();
-        std::this_thread::sleep_for(std::chrono::milliseconds(time));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10*time));
         oled.clear();
         oled.draw_circle(64, 32, 30, true);
         oled.update();
@@ -116,7 +143,7 @@ auto oled_task(i2c::I2cBus bus) -> void {
         oled.clear();
         oled.fill_chess(4);
         oled.update();
-        std::this_thread::sleep_for(std::chrono::milliseconds(time));
+        std::this_thread::sleep_for(std::chrono::milliseconds(time));*/
     }
 }
 
@@ -133,16 +160,6 @@ extern "C" void app_main(void)  {
     auto fut_oled = std::async(std::launch::async, [&]() { oled_task(bus); });
 
     while (1) {
-        {
-            auto guard = mea.lock();
-            
-            std::println("Temperature: {}, Humidity: {}, Pressure: {}",
-                (float)(((guard.get_ref().bmp.temperature * 10) + (guard.get_ref().dht.temperature * 10)) / 20),
-                guard.get_ref().dht.humidity,
-                guard.get_ref().bmp.pressure
-            );
-        }
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(time));
     } 
 }
