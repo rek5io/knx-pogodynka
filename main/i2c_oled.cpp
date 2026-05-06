@@ -2,6 +2,10 @@
 
 #include "i2c.cpp"
 #include "result.hpp"
+#include <format>
+#include <iterator>
+#include <cstddef>
+
 using namespace result;
 
 namespace oled {
@@ -49,8 +53,32 @@ namespace oled {
         [40] = {0x3C, 0x52, 0x93, 0x95, 0x99, 0x81, 0x42, 0x3C}, // 'zegar?'
         [41] ={0x00, 0x60, 0x60, 0x00, 0x00, 0x60, 0x60, 0x00}, // 'dwukropek- przyda sie'
     };
+
     class OledError {};
     class Oled {
+        class FramebufferWriter {
+            public:
+                using iterator_category = std::output_iterator_tag;
+                using value_type        = char;
+                using difference_type   = std::ptrdiff_t;
+
+                FramebufferWriter(Oled& oled, bool color)
+                    : oled(oled), color(color) {}
+
+                FramebufferWriter& operator=(char c) {
+                    oled.putc(c, color);
+                    return *this;
+                }
+
+                FramebufferWriter& operator*() { return *this; }
+                FramebufferWriter& operator++() { return *this; }
+                FramebufferWriter& operator++(int) { return *this; }
+
+            private:
+                Oled& oled;
+                bool color;
+        };
+
         private:
             i2c::I2cDevice dev;
             uint8_t *framebuffer = nullptr;
@@ -194,6 +222,7 @@ namespace oled {
                     }
                 }
             }
+
             void draw_circle(int x0, int y0, int radius, bool color=0) {
                 int x = radius;
                 int y = 0;
@@ -219,6 +248,7 @@ namespace oled {
                     }
                 }
             }
+
             void print(const char* str, bool color=0) {
                 while (*str) {
                     if(*str>='0' && *str<='9') {
@@ -232,6 +262,7 @@ namespace oled {
                     str++;
                 }
             }
+
             void println(const char* str, bool color=0) {
                 print(str, color);
                 coursor_x = 4;
@@ -240,6 +271,35 @@ namespace oled {
                     coursor_y = 0;
                 }
             }
+
+            void putc(char c, bool color = false) {
+                if (c >= '0' && c <= '9') {
+                    draw_symbol(coursor_x, coursor_y, font8x8_basic[c - '0'], 8, 8, color);
+                } else if (c >= 'A' && c <= 'Z') {
+                    draw_symbol(coursor_x, coursor_y, font8x8_basic[c - 'A' + 10], 8, 8, color);
+                } else if (c >= 'a' && c <= 'z') {
+                    draw_symbol(coursor_x, coursor_y, font8x8_basic[c - 'a' + 10], 8, 8, color);
+                }
+
+                coursor_x += 8;
+            }
+
+            template <typename... Args>
+            void print_fmt(std::format_string<Args...> fmt, Args&&... args, bool color = false) {
+                FramebufferWriter w(this, color);
+                std::format_to(w, fmt, std::forward<Args>(args)...);
+            }
+
+            template <typename... Args>
+            void println_fmt(std::format_string<Args...> fmt, Args&&... args, bool color = false) {
+                print_fmt(fmt);
+                coursor_x = 4;
+                coursor_y += 8;
+                if (coursor_y + 8 > y_size) {
+                    coursor_y = 0;
+                }
+            }
+
             void fill_chess(uint8_t size){
                 for (uint8_t y = 0; y < y_size; y++) {
                     for (uint8_t x = 0; x < x_size; x++) {
@@ -247,18 +307,22 @@ namespace oled {
                     }
                 }
             }
+
             void clear() {
                 set_coursor(0, 0);
                 for (int i = 0; i < x_size * y_size / 8; i++) {
                     framebuffer[i] = 0x00;
                 }
             }
+
             uint8_t get_x_size() const {
                 return x_size;
             }
+
             uint8_t get_y_size() const {
                 return y_size;
             }
+
             void set_coursor(uint8_t x, uint8_t y) {
                 coursor_x = x;
                 coursor_y = y;
