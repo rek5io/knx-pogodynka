@@ -227,13 +227,17 @@ namespace oled {
                         draw_symbol(coursor_x, coursor_y, font8x8_basic[*str-'A'+10], 8, 8, color);
                     } else if(*str>='a' && *str<='z'){
                         draw_symbol(coursor_x, coursor_y, font8x8_basic[*str-'a'+10], 8, 8, color);
+                    } else if(*str>'Z'&&*str<'a'){
+                        draw_symbol(coursor_x, coursor_y, font8x8_basic[*str-'['+36], 8, 8, color);
                     }
                     coursor_x += 8;
                     str++;
                 }
             }
-            void println(const char* str, bool color=0) {
-                print(str, color);
+            void println(std::format_string<Args...> fmt, Args&&... args, bool color=0) {
+                char* buffer;
+                std::format_to(std::back_inserter(buffer), format, );
+                print(buffer, color);
                 coursor_x = 4;
                 coursor_y += 8;
                 if (coursor_y + 8 > y_size) {

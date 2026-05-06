@@ -15,7 +15,7 @@ namespace bmp280 {
     class Bmp280 {
         private:
             i2c::I2cDevice dev;
-            int16_t t1;
+            uint16_t t1;
             int16_t t2;
             int16_t t3;
             uint16_t p1;
@@ -31,7 +31,7 @@ namespace bmp280 {
 
             Bmp280(i2c::I2cDevice dev) : dev(dev) {}
 
-            auto compensate_T(int32_t adc_T) -> uint32_t {
+            auto compensate_T(int32_t adc_T) -> int32_t {
                 int32_t var1 = ((((adc_T >> 3) - ((int32_t)t1 << 1)))
                        * (int32_t)t2) >> 11;
 

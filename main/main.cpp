@@ -84,6 +84,9 @@ auto oled_task(i2c::I2cBus bus) -> void {
 
     auto dev = dev_result.unwrap();
     auto oled = oled::Oled::from_i2c(dev).unwrap();
+    char hum[4];
+    char press[5];
+    char temp[4]
     oled.clear();
     oled.update();
     while (1) {
@@ -91,11 +94,11 @@ auto oled_task(i2c::I2cBus bus) -> void {
         {
             auto guard = mea.lock();
             
-            oled.println(std::to_string(((guard.get_ref().bmp.temperature * 10) + (guard.get_ref().dht.temperature * 10)) / 20).c_str(),0);
-            oled.println(std::to_string(guard.get_ref().dht.humidity).c_str(),0);
-            oled.println(std::to_string(guard.get_ref().bmp.pressure).c_str(),0);
+            temp = std::to_string(((guard.get_ref().bmp.temperature * 10) + (guard.get_ref().dht.temperature * 10)) / 20).c_str();
+            hum = std::to_string(guard.get_ref().dht.humidity).c_str();
+            press = std::to_string(guard.get_ref().bmp.pressure).c_str();
         }
-        
+        oled.println()
         oled.update();
         std::this_thread::sleep_for(std::chrono::milliseconds(time));
         oled.clear();
