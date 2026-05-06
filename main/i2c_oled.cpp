@@ -9,7 +9,7 @@
 using namespace result;
 
 namespace oled {
-    const uint8_t font8x8_basic[42][8] = {
+    const uint8_t font8x8_basic[43][8] = {
         [0] = {0x3C, 0x42, 0x42, 0x42, 0x42, 0x42, 0x3C, 0x00}, // '0'
         [1] = {0x18, 0x78, 0x18, 0x18, 0x18, 0x18, 0x3C, 0x00}, // '1'
         [2] = {0x38, 0x44, 0x04, 0x08, 0x10, 0x20, 0x7E, 0x00}, // '2'
@@ -46,12 +46,13 @@ namespace oled {
         [33] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // 'X'
         [34] = {0x81, 0x42, 0x24, 0x18, 0x18, 0x18, 0x18, 0x00}, // 'Y'
         [35] = {0x7E, 0x02, 0x04, 0x08, 0x10, 0x20, 0x7E, 0x00}, // 'Z'
-        [36] = {0x0C, 0x12, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00}, // 'stopien'
-        [37] = {0x00, 0x62, 0x64, 0x08, 0x10, 0x26, 0x46, 0x00}, // '%'
-        [38] = {0x18, 0x18, 0x24, 0x42, 0x81, 0x81, 0x42, 0x3C}, // 'kropelka
-        [39] = {0x38, 0x44, 0x54, 0x54, 0x54, 0x54, 0x7C, 0x38}, // 'termometr?'
-        [40] = {0x3C, 0x52, 0x93, 0x95, 0x99, 0x81, 0x42, 0x3C}, // 'zegar?'
-        [41] ={0x00, 0x60, 0x60, 0x00, 0x00, 0x60, 0x60, 0x00}, // 'dwukropek- przyda sie'
+        [36] = {0x0C, 0x12, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00}, // 'stopien'([)
+        [37] = {0x00, 0x62, 0x64, 0x08, 0x10, 0x26, 0x46, 0x00}, // '%' (\)
+        [38] = {0x18, 0x18, 0x24, 0x42, 0x81, 0x81, 0x42, 0x3C}, // 'kropelka (])
+        [39] = {0x38, 0x44, 0x54, 0x54, 0x54, 0x54, 0x7C, 0x38}, // 'termometr?' (^)
+        [40] = {0x3C, 0x52, 0x93, 0x95, 0x99, 0x81, 0x42, 0x3C}, // 'zegar?' (_)
+        [41] ={0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x60, 0x00}, // 'kropka ' (`)
+        [42] ={0x00, 0x60, 0x60, 0x00, 0x00, 0x60, 0x00, 0x00}, // 'dwukropek- przyda sie' ()
     };
 
     class OledError {};
@@ -84,8 +85,8 @@ namespace oled {
             uint8_t *framebuffer = nullptr;
             uint8_t x_size = 130;
             uint8_t y_size = 64;
-            uint8_t coursor_x = 5;
-            uint8_t coursor_y = 5;
+            uint8_t coursor_x = 4;
+            uint8_t coursor_y = 0;
             Oled(i2c::I2cDevice dev) : dev(dev) {}
 
             void oled_cmd(uint8_t cmd) {
@@ -257,7 +258,9 @@ namespace oled {
                         draw_symbol(coursor_x, coursor_y, font8x8_basic[*str-'A'+10], 8, 8, color);
                     } else if(*str>='a' && *str<='z'){
                         draw_symbol(coursor_x, coursor_y, font8x8_basic[*str-'a'+10], 8, 8, color);
-                    }
+                    } else if(*str>'Z'&&*str<'a'){
+                        draw_symbol(coursor_x, coursor_y, font8x8_basic[*str-'['+36], 8, 8, color);
+                    } 
                     coursor_x += 8;
                     str++;
                 }
@@ -279,6 +282,19 @@ namespace oled {
                     draw_symbol(coursor_x, coursor_y, font8x8_basic[c - 'A' + 10], 8, 8, color);
                 } else if (c >= 'a' && c <= 'z') {
                     draw_symbol(coursor_x, coursor_y, font8x8_basic[c - 'a' + 10], 8, 8, color);
+                } else if(c>'Z'&&c<'a'){
+                    draw_symbol(coursor_x, coursor_y, font8x8_basic[c-'['+36], 8, 8, color);
+                }
+                switch (c)
+                {
+                case ',':
+                    draw_symbol(coursor_x, coursor_y, font8x8_basic[41], 8, 8, color);
+                    break;
+                case '.':
+                    draw_symbol(coursor_x, coursor_y, font8x8_basic[41], 8, 8, color);
+                    break;
+                default:
+                    break;
                 }
 
                 coursor_x += 8;
