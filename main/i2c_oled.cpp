@@ -56,17 +56,17 @@ namespace oled {
 
     class OledError {};
     class Oled {
-        class FramebufferWriter {
+       class FramebufferWriter {
             public:
                 using iterator_category = std::output_iterator_tag;
                 using value_type        = char;
                 using difference_type   = std::ptrdiff_t;
 
-                FramebufferWriter(Oled& oled, bool color)
+                FramebufferWriter(Oled* oled, bool color)
                     : oled(oled), color(color) {}
 
-                FramebufferWriter& operator=(char c) {
-                    oled.putc(c, color);
+                FramebufferWriter& operator=(char const& c) {
+                    oled->putc(c, color);
                     return *this;
                 }
 
@@ -75,7 +75,7 @@ namespace oled {
                 FramebufferWriter& operator++(int) { return *this; }
 
             private:
-                Oled& oled;
+                Oled* oled;
                 bool color;
         };
 
@@ -285,14 +285,14 @@ namespace oled {
             }
 
             template <typename... Args>
-            void print_fmt(std::format_string<Args...> fmt, Args&&... args, bool color = false) {
-                FramebufferWriter w(this, color);
+            void print_fmt(std::format_string<Args...> fmt, Args&&... args) {
+                FramebufferWriter w(this, false);
                 std::format_to(w, fmt, std::forward<Args>(args)...);
             }
 
             template <typename... Args>
-            void println_fmt(std::format_string<Args...> fmt, Args&&... args, bool color = false) {
-                print_fmt(fmt);
+            void println_fmt(std::format_string<Args...> fmt, Args&&... args) {
+                print_fmt(fmt, std::forward<Args>(args)...);
                 coursor_x = 4;
                 coursor_y += 8;
                 if (coursor_y + 8 > y_size) {

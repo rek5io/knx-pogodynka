@@ -112,6 +112,8 @@ auto oled_task(i2c::I2cBus bus) -> void {
         oled.draw_symbol(21, 5, oled::font8x8_basic[40], 8, 8, true);
         oled.draw_symbol(29, 5, oled::font8x8_basic[41], 8, 8, true);
         oled.update();
+        oled.print_fmt("12 to {} ", 12);
+        oled.println_fmt("67 to {} ", 67);
         std::this_thread::sleep_for(std::chrono::milliseconds(time));
         /*
         //DEMO CODE
