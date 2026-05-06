@@ -7,7 +7,7 @@ using namespace result;
 namespace bmp280 {
     struct Measurement {
         float temperature;
-        float pressure;
+        uint32_t pressure;
     };
 
     class BmpError {};
@@ -132,7 +132,7 @@ namespace bmp280 {
                     ((int32_t)buf[5] >> 4);
 
                 float t = (float)this->compensate_T(adc_T) / 100.0;
-                float p = this->compensate_P(adc_P);
+                uint32_t p = this->compensate_P(adc_P);
 
                 return Result<Measurement, BmpError>::Ok({t, p});
             }
