@@ -160,6 +160,6 @@ extern "C" void app_main(void)  {
     auto fut_oled = std::async(std::launch::async, [&]() { oled_task(bus); });
 
     while (1) {
-        
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     } 
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 namespace mutex {
     template<typename T>
     class Mutex;
@@ -22,7 +24,7 @@ namespace mutex {
             }
 
             ~MutexGuard() {
-                xSemaphoreGive(this->m.sem);
+                this->m.m.unlock();
             }
     };
 
@@ -31,12 +33,10 @@ namespace mutex {
         friend class MutexGuard<T>;
 
         private:
-            SemaphoreHandle_t sem;
+            std::mutex m;
             T value;
 
-            Mutex(T v) : value(v) {
-                this->sem = xSemaphoreCreateMutex();
-            }
+            Mutex(T v) : value(v) {}
 
         public:
             static auto init(T value) -> Mutex<T> {
@@ -44,12 +44,10 @@ namespace mutex {
             }
 
             auto lock() -> MutexGuard<T> {
-                xSemaphoreTake(this->sem, portMAX_DELAY);
+                this->m.lock();
                 return MutexGuard(*this);
             }
 
-            ~Mutex() {
-                vSemaphoreDelete(this->sem);
-            }
+            ~Mutex() {}
     };
 }
