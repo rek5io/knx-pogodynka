@@ -2,6 +2,7 @@
 #include <thread>
 #include <future>
 #include "driver/gpio.h"
+#include "baos.cpp"
 #include "i2c_oled.cpp"
 #include "dht22.cpp"
 #include "i2c.cpp"
@@ -170,5 +171,7 @@ extern "C" void app_main(void)  {
     while (1) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         print_heap_info();
+
+        baos::Request::test();
     } 
 }
